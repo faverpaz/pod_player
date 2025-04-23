@@ -22,7 +22,7 @@ class PodPlayerController {
 
   bool showMoreIcon;
 
-  /// controller for pod player
+  /// Constructor del controlador para el reproductor de video
   PodPlayerController({
     required this.playVideoFrom,
     this.podPlayerConfig = const PodPlayerConfig(),
@@ -42,9 +42,9 @@ class PodPlayerController {
       ..showMenu = showMoreIcon;
   }
 
-  /// Initializes the video player.
+  /// Inicializa el reproductor de video.
   ///
-  /// If the provided video cannot be loaded, an exception could be thrown.
+  /// Si el video no se puede cargar, se lanzará una excepción.
   Future<void> initialise() async {
     if (!_isCtrInitialised) {
       _init();
@@ -71,7 +71,7 @@ class PodPlayerController {
       return;
     }
 
-    /// If a wrong video is passed to the player, it'll never being loaded.
+    /// Si se pasa un video incorrecto, nunca se cargará.
     if (_initializationError != null) {
       if (_initializationError! is Exception) {
         throw _initializationError! as Exception;
@@ -86,88 +86,91 @@ class PodPlayerController {
     await _checkAndWaitTillInitialized();
   }
 
-  /// returns the url of current playing video
+  /// Getter para acceder al reproductor ExoPlayer subyacente
+  dynamic get exoPlayer => _ctr.exoPlayer;
+
+  /// Retorna la URL del video actualmente en reproducción
   String? get videoUrl => _ctr.playingVideoUrl;
 
-  /// returns true if video player is initialized
+  /// Retorna `true` si el reproductor de video está inicializado
   bool get isInitialised => _ctr.videoCtr?.value.isInitialized ?? false;
 
-  /// returns true if video is playing
+  /// Retorna `true` si el video está en reproducción
   bool get isVideoPlaying => _ctr.videoCtr?.value.isPlaying ?? false;
 
-  /// returns true if video is in buffering state
+  /// Retorna `true` si el video está en estado de buffering
   bool get isVideoBuffering => _ctr.videoCtr?.value.isBuffering ?? false;
 
-  /// returns true if `loop` is enabled
+  /// Retorna `true` si el video está en modo de bucle
   bool get isVideoLooping => _ctr.videoCtr?.value.isLooping ?? false;
 
-  /// returns true if video is in fullscreen mode
+  /// Retorna `true` si el video está en modo pantalla completa
   bool get isFullScreen => _ctr.isFullScreen;
 
+  /// Retorna `true` si el volumen está silenciado
   bool get isMute => _ctr.isMute;
 
-  /// returns true if more vert Icon is Visible
+  /// Retorna `true` si el ícono de más opciones es visible
   bool get isMoreIconVisible => _ctr.showMenu;
 
+  /// Retorna el estado actual del video
   PodVideoState get videoState => _ctr.podVideoState;
 
+  /// Retorna el valor actual del reproductor de video
   VideoPlayerValue? get videoPlayerValue => _ctr.videoCtr?.value;
 
+  /// Retorna el tipo de reproductor de video
   PodVideoPlayerType get videoPlayerType => _ctr.videoPlayerType;
 
-  // Future<void> initialize() async => _ctr.videoCtr?.initialize;
+  //! Posiciones del video
 
-  //! video positions
-
-  /// Returns the video total duration
+  /// Retorna la duración total del video
   Duration get totalVideoLength => _ctr.videoDuration;
 
-  /// Returns the current position of the video
+  /// Retorna la posición actual del video
   Duration get currentVideoPosition => _ctr.videoPosition;
 
-  //! video play/pause
+  //! Control de reproducción
 
-  /// plays the video
+  /// Reproduce el video
   void play() => _ctr.podVideoStateChanger(PodVideoState.playing);
 
-  /// pauses the video
+  /// Pausa el video
   void pause() => _ctr.podVideoStateChanger(PodVideoState.paused);
 
-  /// toogle play and pause
+  /// Alterna entre reproducir y pausar
   void togglePlayPause() {
     isVideoPlaying ? pause() : play();
   }
 
-  /// Listen to changes in video.
-  ///
-  /// It only adds a listener if the player is successfully initialized
+  /// Agrega un listener para los cambios en el video
   void addListener(VoidCallback listener) {
     _checkAndWaitTillInitialized().then(
       (value) => _ctr.videoCtr?.addListener(listener),
     );
   }
 
-  /// Remove registered listeners
+  /// Elimina un listener registrado
   void removeListener(VoidCallback listener) {
     _checkAndWaitTillInitialized().then(
       (value) => _ctr.videoCtr?.removeListener(listener),
     );
   }
 
-  //! volume Controllers
+  //! Control de volumen
 
-  /// mute the volume of the video
+  /// Silencia el volumen del video
   Future<void> mute() async => _ctr.mute();
 
-  /// unmute the volume of the video
+  /// Reactiva el volumen del video
   Future<void> unMute() async => _ctr.unMute();
 
-  /// toggle the volume
+  /// Alterna entre silenciar y reactivar el volumen
   Future<void> toggleVolume() async {
     _ctr.isMute ? await _ctr.unMute() : await _ctr.mute();
   }
 
-  ///Dispose pod video player controller
+  /// Libera los recursos del controlador del reproductor de video
   void dispose() {
     _isCtrInitialised = false;
     _ctr.videoCtr?.removeListener(_ctr.videoListner);
@@ -181,7 +184,7 @@ class PodPlayerController {
     podLog('$getTag Pod player Disposed');
   }
 
-  /// used to change the video
+  /// Cambia el video actual
   Future<void> changeVideo({
     required PlayVideoFrom playVideoFrom,
     PodPlayerConfig playerConfig = const PodPlayerConfig(),
@@ -191,57 +194,51 @@ class PodPlayerController {
         playerConfig: playerConfig,
       );
 
-  //Change double tap duration
+  /// Cambia la duración del doble toque
   void setDoubeTapForwarDuration(int seconds) => _ctr.doubleTapForwardSeconds = seconds;
 
-  ///Jumps to specific position of the video
+  /// Salta a una posición específica del video
   Future<void> videoSeekTo(Duration moment) async {
     await _checkAndWaitTillInitialized();
     if (!_isCtrInitialised) return;
     return _ctr.seekTo(moment);
   }
 
-  ///Moves video forward from current duration to `_duration`
+  /// Avanza el video desde la posición actual
   Future<void> videoSeekForward(Duration duration) async {
     await _checkAndWaitTillInitialized();
     if (!_isCtrInitialised) return;
     return _ctr.seekForward(duration);
   }
 
-  ///Moves video backward from current duration to `_duration`
+  /// Retrocede el video desde la posición actual
   Future<void> videoSeekBackward(Duration duration) async {
     await _checkAndWaitTillInitialized();
     if (!_isCtrInitialised) return;
     return _ctr.seekBackward(duration);
   }
 
-  ///on right double tap
+  /// Acción al hacer doble toque hacia adelante
   Future<void> doubleTapVideoForward(int seconds) async {
     await _checkAndWaitTillInitialized();
     if (!_isCtrInitialised) return;
     return _ctr.onRightDoubleTap(seconds: seconds);
   }
 
-  ///on left double tap
+  /// Acción al hacer doble toque hacia atrás
   Future<void> doubleTapVideoBackward(int seconds) async {
     await _checkAndWaitTillInitialized();
     if (!_isCtrInitialised) return;
     return _ctr.onLeftDoubleTap(seconds: seconds);
   }
 
-  /// Enables video player to fullscreen mode.
-  ///
-  /// If onToggleFullScreen is set, you must handle the device
-  /// orientation by yourself.
+  /// Habilita el modo de pantalla completa
   void enableFullScreen() {
     uni_html.document.documentElement?.requestFullscreen();
-    _ctr.enableFullScreen(getTag,showMenu: showMoreIcon);
+    _ctr.enableFullScreen(getTag, showMenu: showMoreIcon);
   }
 
-  /// Disables fullscreen mode.
-  ///
-  /// If onToggleFullScreen is set, you must handle the device
-  /// orientation by yourself.
+  /// Deshabilita el modo de pantalla completa
   void disableFullScreen(BuildContext context) {
     uni_html.document.exitFullscreen();
 
@@ -250,11 +247,12 @@ class PodPlayerController {
     }
   }
 
-  /// listener for the changes in the quality of the video
+  /// Listener para los cambios en la calidad del video
   void onVideoQualityChanged(VoidCallback callback) {
     _ctr.onVimeoVideoQualityChanged = callback;
   }
 
+  /// Obtiene las URLs de YouTube para diferentes calidades
   static Future<List<VideoQalityUrls>?> getYoutubeUrls(
     String youtubeIdOrUrl, {
     bool live = false,
@@ -262,6 +260,7 @@ class PodPlayerController {
     return VideoApis.getYoutubeVideoQualityUrls(youtubeIdOrUrl, live);
   }
 
+  /// Obtiene las URLs de Vimeo para diferentes calidades
   static Future<List<VideoQalityUrls>?> getVimeoUrls(
     String videoId, {
     String? hash,
@@ -269,9 +268,9 @@ class PodPlayerController {
     return VideoApis.getVimeoVideoQualityUrls(videoId, hash);
   }
 
-  /// Hide overlay of video
+  /// Oculta el overlay del video
   void hideOverlay() => _ctr.isShowOverlay(false);
 
-  /// Show overlay of video
+  /// Muestra el overlay del video
   void showOverlay() => _ctr.isShowOverlay(true);
 }
